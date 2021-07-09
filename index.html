@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+
+    <style>
+      body {
+        box-sizing: border-box;
+        margin: 0;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: black;
+      }
+
+      button {
+        position: relative;
+        overflow: hidden;
+        transition: background 400ms;
+        color: #fff;
+        background-color: #6200ee;
+        padding: 1rem 2rem;
+        font-family: "Roboto", sans-serif;
+        font-size: 1.5rem;
+        outline: 0;
+        border: 0;
+        border-radius: 0.25rem;
+        box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+      }
+
+      span.ripple {
+        position: absolute;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.4);
+      }
+
+      span.rippleStart {
+        transform: scale(0);
+        opacity: 1;
+
+        animation: rippleUp 300ms linear;
+        animation-fill-mode: forwards;
+      }
+
+      span.rippleEnd {
+        transform: scale(2);
+        opacity: 0.5;
+        animation: ripperDown 100ms linear;
+        animation-fill-mode: forwards;
+      }
+
+      @keyframes rippleUp {
+        to {
+          transform: scale(2);
+          opacity: 0.5;
+        }
+      }
+      @keyframes ripperDown {
+        to {
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button class="btn-ripple">Find out more</button>
+    <script>
+      function addRipple(event) {
+        const button = event.currentTarget;
+        const ripple = document.createElement("span");
+        // 直径
+        const diameter = Math.max(button.clientWidth, button.clientHeight);
+        // 半径
+        const radius = diameter / 2;
+        ripple.style.width = ripple.style.height = `${diameter}px`;
+        ripple.style.left = `${event.clientX - (button.offsetLeft + radius)}px`;
+        ripple.style.top = `${event.clientY - (button.offsetTop + radius)}px`;
+        ripple.classList.add("ripple", "rippleStart");
+
+        button.appendChild(ripple);
+      }
+
+      function removeRipple(event) {
+        const button = event.currentTarget;
+        for (const ripple of button.getElementsByClassName("rippleStart")) {
+          if (ripple.getAttribute("data-removing-ripple") === "1") {
+            continue;
+          }
+          // 添加一个flag
+          ripple.setAttribute("data-removing-ripple", "1");
+          // 等待所有动画完成
+          Promise.all(ripple.getAnimations().map((anim) => anim.finished)).then((res) => {
+            if (ripple.classList.contains("rippleStart")) {
+              ripple.classList.remove("rippleStart");
+              ripple.classList.add("rippleEnd");
+
+              Promise.all(ripple.getAnimations().map((anim) => anim.finished)).then((res) => {
+                ripple.remove();
+              });
+            }
+          });
+        }
+      }
+
+      const buttons = document.getElementsByClassName("btn-ripple");
+      for (const button of buttons) {
+        button.addEventListener("mousedown", addRipple);
+        button.addEventListener("mouseup", removeRipple);
+        button.addEventListener("mouseleave", removeRipple);
+      }
+    </script>
+  </body>
+</html>
